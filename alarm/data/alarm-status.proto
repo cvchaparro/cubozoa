@@ -1,3 +1,5 @@
+// This would be generated.
+
 syntax = "proto3";
 
 package alarm;

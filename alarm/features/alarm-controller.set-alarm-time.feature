@@ -1,3 +1,5 @@
+# This would be generated
+
 Feature: alarm-controller set-alarm-time
   The alarm time can be set as desired by the user.
 
