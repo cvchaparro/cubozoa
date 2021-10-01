@@ -24,7 +24,6 @@
 
 
 (defbehavior alarm-controller
-  "The alarm time can be set as desired by the user."
   (set-alarm-time
    "Set the alarm time for a time in the future"
    (given (the alarm is not set)
@@ -39,7 +38,9 @@
     (:time "7am" "7 am" "7:00" "0715" "12:00" "1200" "1300" "1pm" "1 pm" "14:15:16" "2:15:16")
     (:hours 7 7 7 7 12 12 13 13 13 14 14)
     (:minutes 0 0 0 15 0 0 0 0 0 15 15)
-    (:seconds 0 0 0 0 0 0 0 0 0 16 16))))
+    (:seconds 0 0 0 0 0 0 0 0 0 16 16)))
+  (:description "The alarm time can be set as desired by the user."
+   :requirements (t001 t002 t003)))
 
 
 (defbehavior alarm-controller

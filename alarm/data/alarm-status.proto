@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package alarm;
+
+message AlarmStatus {
+  required int32 id = 1;
+  required bool active = 2;
+}
