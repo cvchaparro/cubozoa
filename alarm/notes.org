@@ -1,0 +1,171 @@
+#+title: Thoughts on Jellyfish v3.0 MVP
+
+* DSL
+** Lispy syntax
+*** Not required to stay lispy (obviously) but this is how I could think best about it
+*** Shouldn't be too challenging to convert this to YAML, if desired
+*** YAML front-end/Lispy back-end
+    This could serve as a possible middle-of-the-road option where the
+    "front-end" is YAML and the "back-end" is Lispy. This would mean that
+    technical/developer users would modify YAML (if they want) and the web
+    front-end will generate YAML. Then, for the back-end, the DSL makes use of
+    Lisp's power when creating and working with DSLs.
+** Packages
+   - Consider ~defpackage~ and ~in-package~ (as in CL) versus ~package~ (as in Java)
+   - For the DSL, the difference is not likely to be important, but if we opt
+     for the single package definition style (like Java has), it may make sense
+     to rename it to something...
+** Data and Enums
+*** Data
+    - We create data model using the DSL, and define the underlying
+      implementation (i.e. protobuf) by specifying it in the deployment /
+      implementation configuration.
+      #+begin_example lisp
+      ;; The simplest data definition (high-level)
+      ;;
+      ;; Here, we just define the types of each field but it would make sense if
+      ;; we could also add constraints, too. We actually added constraints to
+      ;; the configuration, instead, in this case.
+      (defdata email-message
+        (id :type integer)
+        (to :type list)
+        (from :type string)
+        (subject :type string)
+        (body :type string))
+      #+end_example
+*** Enums
+    - We create enums using the DSL
+      #+begin_example lisp
+      ;; An example enumeration
+      (defenum time-zone
+        :est :cst :mst :dst)
+      #+end_example
+    - Note: Enumerations and Data models would likely use the same
+      implementation format - i.e. protobuf
+** Models
+   - Models follow the same general structure as they did in SD but with a few
+     name changes and with behavior being separated from the model.
+     #+begin_example lisp
+     ;; Define a model (high-level)
+     (defmodel email-service
+       (with-inputs
+         (user-email-address :type email-address)
+         (recipient-email-address :type (or list email-address)))
+
+       (with-outputs
+         (email :type email-message)))
+     #+end_example
+** Behavior
+   - Behavior is defined separately from the model implementation configuration
+     to promote reusability of models. For example, if you have created a model
+     for a clock application, it's behavior could vary depending on whether the
+     #+begin_example lisp
+     #+end_example
+** Configurations/Implementations/Deployments
+   - This would be the equivalent of the deployment models from SD:
+     #+begin_example lisp
+     ;; Not actually part of the DSL, this is just extra code to support the
+     ;; `:validator's below.
+     (defgeneric is-valid-email-address (object)
+       (:documentation
+        "Return STRING if it adheres to the format of a valid email address; NIL, otherwise."))
+
+     (defmethod is-valid-email-address ((xs list))
+       (every #'is-valid-email-address xs))
+
+     (defmethod is-valid-email-address ((x string))
+       (let ((@pos (position #\@ x))
+             (.pos (position #\. x :from-end t)))
+         (and .pos @pos (> .pos (+ 2 @pos)))))
+
+     ;; A sample implementation of the above definitions
+     (defconfig email-service
+       (:implementation
+        ;; Specify the implementation language
+        (language :python)
+        ;; Specify the data interchange format
+        (data :proto3)
+        ;; Specify the behavior testing framework
+        (behavior :cucumber))
+
+       ;; Add some constraints on the data fields
+       (configure-data email-message
+         (id :min 0)
+         (to :validator #'is-valid-email-address)
+         (from :validator #'is-valid-email-address)
+         (subject :max 128 :key #'length)
+         body))
+     #+end_example
+   - Alternatively, we could define implementations for each data model, if
+     that is preferable.
+* File/Directory Structure
+** Modules
+   - Collection of DSL files that can be re-used by system engineers for new
+     models a la Terraform modules.
+
+     NB: The example assumes the lisp DSL, but use of that DSL is not required
+     for this structure to remain valid.
+     #+begin_example
+     - alarm/                      # the top-level module directory
+       - alarm.lisp                # where the alarm model is defined
+       - data.lisp                 # where data models specific to the alarm are defined
+       - behavior.lisp             # where behavior for the alarm is defined
+       - versions.lisp             # where the versions for the module are contained
+       - etc...                    # any other lisp files that may be needed
+       - impl/                     # the directory containing implementation related configurations
+         - configuration.lisp      # where the deployment configuration is defined
+
+     - digital-alarm/              # the directory containing an implementation of the module
+       - versions.lisp
+       - data/                     # the directory containing the protobuf files for the data
+         - acknowledgement.proto   # ... types defined in data.lisp in the module
+         - alarm-time.proto
+         - current-time.proto
+       - behavior/                 # the directory containing the feature files for the behavior
+         - trigger-alarm.feature   # ... defined in behavior.lisp in the module
+         - etc...
+       - src/
+         - digital-alarm.lisp
+     #+end_example
+* Implementation
+** Common Lisp
+   What would Lisp buy us?
+   - Very effective at building DSLs
+     - Various types of macros (i.e. reader macros, regular macros, etc)
+   - Extensibility
+     - No need for building a parser/compiler because we can use Lisp's
+       parser/compiler.
+     - Macros
+     - CLOS
+     - Generic functions
+     - Extensible type system
+     - First-class functions
+   - Exploratory development/Rapid Prototyping
+     - Strong/Dynamic typing
+     - Interactive development (e.g. interactive debugger)
+     - Condition system for error (and other) handling
+   - Interoperability with other programming languages
+     - ABCL (Armed Bear Common Lisp) provides bi-directional interoperability
+       with Java.
+     - CFFI (Common Foreign Function Interface) provides the ability to call C
+       (possibly other languages, too) code from Lisp.
+     - CL4PY/PY4CL provide bi-directional interoperability with Python
+   - Stable standard
+     - There has been no need to change the standard since 1994 because of
+       aforementioned properties.
+
+   Why wouldn't we want to use Lisp?
+   - Not as wide-spread as other languages
+     1. I'm not suggesting we write it all (or at all) in Common Lisp, but I do
+        think it would be beneficial to do so (see above for some reasons).
+     2. This is in large part a self-fulfilling prophecy.
+
+        Example.
+        "There aren't enough CL developers", "I can hire 20 Java developers for
+        each CL developer", etc. My response to that would be that this
+        encourages people to prioritize using Java over CL because people are
+        more interested in hiring Java devs. If we sought out CL devs, I suspect
+        people would see that and we'd have more people interested in
+        learning/using CL. Additionally, other companies *do* use CL for some of
+        their products.
+** Alternative Languages
