@@ -48,7 +48,8 @@
       An example implementation of the plugin API for generating Protocol Buffer
       messages based on data models:
       #+begin_example lisp
-      ;; Here, `implementation' could also be a class depending on the needs
+      ;; Here, `implementation' could also be a class instead of `:proto3'
+      ;; depending on the specific needs of the plugin.
       (defmethod data ((implementation :proto3) model)
         ;; here would be the code to convert the model to a protobuf message
         )
@@ -77,7 +78,7 @@
       (defconfig my-deployment
         ;; ...
 
-        (configure-data :implementation :proto3)
+        (configure-data :implementation :json)
 
         ;; ...
         )
