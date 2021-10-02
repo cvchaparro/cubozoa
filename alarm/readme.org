@@ -10,11 +10,96 @@
     technical/developer users would modify YAML (if they want) and the web
     front-end will generate YAML. Then, for the back-end, the DSL makes use of
     Lisp's power when creating and working with DSLs.
+*** Flexibility/Extensibility
+    Why would Lisp make the back-end more flexible and extensible than other
+    languages?
+
+    The short answer is that other languages have their ways of doing it but
+    (from what I've seen) it requires more boilerplate - i.e. dependency
+    injection frameworks, *everything* is an object (even though that can force
+    inefficient designs), etc.
+
+    Lisp has several features that would make the back-end flexible to design
+    changes and highly extensible (without needless boilerplate):
+    - Generic functions:
+      You can see [[https://gigamonkeys.com/book/object-reorientation-generic-functions.html][this reference]] for more information on what generic functions
+      are (specifically in Common Lisp). (Read as much as you want, but you can
+      skip the history and get the idea starting at the _Generic Functions and Methods_
+      section.)
+
+      An example of what the plugin API might be for generating data models:
+      #+begin_example lisp
+      (defgeneric data (implementation model)
+        (:documentation
+         "An implementation for generating code and/or configuration from data models."))
+      #+end_example
+
+      This is separate from any object. This means it's basically a plugin that
+      can be implemented at any point, with any implementation you want.
+      Additionally, since the plugin API (for generating the data code /
+      configuration) is defined here, this generic function can be used without
+      knowing anything about the specific implementation.
+
+      That is to say, if your wanting your data to use Protocol Buffers as the
+      underlying implementation, you implement the ~data~ is generic function
+      (see below) and define the deployment configuration to use the specific
+      implementation and there's no need to change any other code.
+
+      An example implementation of the plugin API for generating Protocol Buffer
+      messages based on data models:
+      #+begin_example lisp
+      ;; Here, `implementation' could also be a class depending on the needs
+      (defmethod data ((implementation :proto3) model)
+        ;; here would be the code to convert the model to a protobuf message
+        )
+      #+end_example
+
+      And to define we want to use Protocol Buffers, we specify that in the
+      deployment configuration:
+      #+begin_example lisp
+      (defconfig my-deployment
+        ;; ...
+
+        (configure-data :implementation :proto3)
+
+        ;; ...
+        )
+      #+end_example
+
+      Finally, if someone else wants a different format (i.e. JSON, etc) it would simply be a matter of doing the following:
+      #+begin_example lisp
+      ;; Wherever you implement the plugin for (e.g.) JSON
+      (defmethod data ((implementation :json) model)
+        ;; here would be the code to convert the model to JSON
+        )
+
+      ;; In the deployment configuration
+      (defconfig my-deployment
+        ;; ...
+
+        (configure-data :implementation :proto3)
+
+        ;; ...
+        )
+      #+end_example
+    - The Common Lisp Object System (CLOS):
+    - Interactive development:
+    - Macros:
+      First and foremost, Lisp macros *are there own thing* - don't think of C
+      macros as a comparison! C macros can do a very limited subset of what Lisp
+      macros can.
+
+      You get access to the full Lisp language at compile-time and at read-time,
+      not just at run-time. This means you can modify the Lisp reader to parse
+      new (even non-Lispy) constructs and you get the power of Lisp to do
+      anything you need to. As far as compiler macros, again, you get the full
+      power of Lisp but for non-trivial replacement tasks they can also
+      generate actual Lisp code (that will be executed at run-time).
 ** Packages
    - Consider ~defpackage~ and ~in-package~ (as in CL) versus ~package~ (as in Java)
    - For the DSL, the difference is not likely to be important, but if we opt
      for the single package definition style (like Java has), it may make sense
-     to rename it to something...
+     to rename it to something.
 ** Data and Enums
 *** Data
     - We create data model using the DSL, and define the underlying
