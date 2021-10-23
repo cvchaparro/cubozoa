@@ -1,0 +1,205 @@
+---
+# root is a special case representing the root of the architecture model and
+# not explicitly included in a model file
+data:
+  name: root
+  items:
+    - name: import
+      type: string[]
+    - name: enum
+      type: enum
+    - name: data
+      type: data
+    - name: model
+      type: model
+    - name: usecase
+      type: usecase
+    - name: ext
+      type: extension
+---
+data:
+  name: enum
+  items:
+    - name: name
+      type: string
+    - name: items
+      type: string[]
+  required:
+    - name
+    - items
+---
+data:
+  name: extension
+  items:
+    - name: name
+      type: string
+    - name: type
+      type: string
+    - name: enumExt
+      type: EnumExtension
+    - name: dataExt
+      type: DataExtension
+  required:
+    - name
+    - type
+---
+data:
+  name: EnumExtension
+  items:
+    - name: add
+      type: string[]
+  required:
+    - add
+---
+data:
+  name: DataExtension
+  items:
+    - name: add
+      type: Field[]
+    - name: required
+      type: string[]
+  required:
+    - add
+---
+data:
+  name: Scenario
+  items:
+    - name: scenario
+      type: string
+    - name: tags
+      type: string[]
+    - name: given
+      type: string[]
+    - name: when
+      type: string[]
+    - name: then
+      type: string[]
+  required:
+    - scenario
+    - when
+    - then
+---
+enum:
+  name: BehaviorType
+  items:
+    - pub-sub
+    - request-response
+    - startup
+    - timer
+---
+enum:
+  name: Primitives
+  items:
+    - string
+    - int
+    - number
+    - bool
+    - date
+    - file
+    - map
+---
+data:
+  name: Field
+  items:
+    - name: name
+      type: string
+    - name: type
+      type: string
+  required:
+    - name
+    - type
+---
+data:
+  name: data
+  items:
+    - name: name
+      type: string
+    - name: items
+      type: Field[]
+    - name: required
+      type: string[]
+  required:
+    - name
+    - items
+---
+data:
+  name: Behavior
+  items:
+    - name: name
+      type: string
+    - name: type
+      type: BehaviorType
+    - name: description
+      type: string
+    - name: tags
+      type: string[]
+    - name: input
+      type: Field[]
+    - name: output
+      type: Field[]
+    - name: acceptance
+      type: Scenario[]
+  required:
+    - name
+    - type
+    - acceptance
+---
+data:
+  name: model
+  items:
+    - name: name
+      type: string
+    - name: description
+      type: string
+    - name: components
+      type: Field[]
+    - name: behavior
+      type: Behavior[]
+  required:
+    - name
+    - behavior
+---
+data:
+  name: usecase
+  items:
+    - name: name
+      type: string
+    - name: description
+      type: string
+    - name: participants
+      type: Field[]
+    - name: steps
+      type: Step[]
+  required:
+    - name
+    - participants
+    - steps
+---
+data:
+  name: Step
+  items:
+    - name: step  # this is the human readable narrative suitable for document generation
+      type: string
+    - name: source  # this should be a name of a participant (i.e. modelled system component)
+      type: string
+    - name: target  # this should be a name of a participant (i.e. modelled system component)
+      type: string
+    - name: action  # this as a behavior reference on the target or a subordinate use case definition
+      type: string
+    - name: if      # would create an alt in a sequence diagram
+      type: Branch
+    - name: else    # would create the "lower cell" in an alt in a sequence diagram
+      type: Branch
+    - name: loop    # would create a loop in a sequence diagram
+      type: Branch
+---
+data:
+  name: Branch
+  items:
+    - name: condition
+      type: string
+    - name: steps
+      type: Step[]
+  required:
+    - condition
+    - steps

@@ -1,0 +1,22 @@
+import:
+  - ./DataA.yaml
+  - ./DataB.yaml
+model:
+  name: ServiceOne
+  behavior:
+    - name: ProcessDataA
+      type: request-response
+      input:
+        - name: in
+          type: DataA
+      output:
+        - name: out
+          type: DataB
+      acceptance:
+        - scenario: go
+          given:
+            - ServiceOne is running.
+          when:
+            - The user sends a DataA request 
+          then:
+            - The user receives a DataB response

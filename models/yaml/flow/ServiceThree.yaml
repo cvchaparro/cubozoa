@@ -1,0 +1,22 @@
+import:
+  - ./DataC.yaml
+  - ./DataD.yaml
+model:
+  name: ServiceThree
+  behavior:
+    - name: ProcessDataC
+      type: request-response
+      input:
+        - name: in
+          type: DataC
+      output:
+        - name: out
+          type: DataD
+      acceptance:
+        - scenario: go
+          given:
+            - The ServiceThree is running
+          when:
+            - The user makes a request with DataC
+          then:
+            - The user gets a response with DataD

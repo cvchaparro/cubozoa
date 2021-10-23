@@ -1,0 +1,23 @@
+import:
+  - ./DataB.yaml
+  - ./DataC.yaml
+model:
+  name: ServiceTwo
+  behavior:
+    - name: Process DataB
+      type: request-response
+      input:
+        - name: in
+          type: DataB
+      output:
+        - name: out
+          type: DataC
+      acceptance:
+        - scenario: go
+          given:
+            - The ServiceTwo is running
+          when:
+            - The user makes a request with DataB
+          then:
+            - The user receives a response with DataC
+          
