@@ -7,5 +7,6 @@
   :components ((:module "src"
                 :components
                 ((:file "package")
+                 (:file "types")
                  (:file "parse")
                  (:file "load")))))
