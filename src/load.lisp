@@ -36,10 +36,6 @@
 (defmethod %required ((table hash-table)) (gethash "required" table))
 (defmethod %type     ((table hash-table)) (gethash "type" table))
 
-;; FIXME: Since AaC defines a `Step' model, we end up with a `STEP' class
-;; defined but CL has a built-in object called `STEP' already so we run into a
-;; package lock scenario. Perhaps the solution will be to use a different naming
-;; scheme for class definitions, like `<STEP>' instead of just `STEP'.
 (defun generate-class (value)
   "Generate a class definition from the parsed value."
   (mapcar (compose #'eval #'generate)
@@ -52,7 +48,7 @@
   (labels ((required-p (item)
              (and (subtypep (class-of value) 'data)
                   (not (null (member (%name item) (%required value) :test #'string=))))))
-    (let ((name (standard-symbol (%name value)))
+    (let ((name (standard-symbol (format nil "<~a>" (%name value))))
           (items (%items value))
           (documentation-fmt "The ~(~a~) of the ~(~a~)."))
       `(defclass ,name ()
