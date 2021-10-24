@@ -4,18 +4,6 @@
                          :cubozoa "models/yaml/aac/aac.yaml")
   "The file containing the Architecture-as-Code language specification.")
 
-(defun build (type value)
-  "Build an object of the specified TYPE from the provided VALUE."
-  (let ((class (intern (string type)))
-        (item-class (intern (format nil "~a-ITEM" type)))
-        (data-p (eq type :data)))
-    (labels ((build-item (x)
-               (apply #'make-instance item-class :name (%name x)
-                      (if data-p (list :type (%type x))))))
-      (apply #'make-instance class
-             :name (%name value) :items (mapcar #'build-item (%items value))
-             (if data-p (list :required (%required value)))))))
-
 ;; TODO: Make this more generic
 ;; For example, the assumption that everything will be loaded into a hash-table
 ;; is not a good assumption since other parsers might return it using a
@@ -28,6 +16,18 @@
                        (vals (hash-table-values table)))
                    (setf keys (mapcar #'standard-keyword keys))
                    (mapcar #'build keys vals)))))
+
+(defun build (type value)
+  "Build an object of the specified TYPE from the provided VALUE."
+  (let ((class (intern (string type)))
+        (item-class (intern (format nil "~a-ITEM" type)))
+        (data-p (eq type :data)))
+    (labels ((build-item (x)
+               (apply #'make-instance item-class :name (%name x)
+                      (if data-p (list :type (%type x))))))
+      (apply #'make-instance class
+             :name (%name value) :items (mapcar #'build-item (%items value))
+             (if data-p (list :required (%required value)))))))
 
 (defmethod %name ((str string)) str)
 
