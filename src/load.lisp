@@ -29,10 +29,6 @@
                    (setf keys (mapcar #'standard-keyword keys))
                    (mapcar #'build keys vals)))))
 
-(defun standard-keyword (x)
-  "Return X as a standard keyword."
-  (funcall (compose #'make-keyword #'string-upcase) x))
-
 (defmethod %name ((str string)) str)
 
 (defmethod %name     ((table hash-table)) (gethash "name" table))
