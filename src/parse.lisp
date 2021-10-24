@@ -20,4 +20,5 @@
 
 ;; TODO: This ultimately doesn't belong here, but for testing it's okay
 (defmethod parse (filespec (type (eql :yaml)) &rest args)
-  (rest (apply #'cl-yaml:parse filespec args)))
+  (let ((model (apply #'cl-yaml:parse filespec args)))
+    (if (listp model) (rest model) model)))
