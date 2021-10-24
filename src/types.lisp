@@ -1,5 +1,8 @@
 (in-package #:cubozoa)
 
+;; TODO: See if we can get rid of the `DATA' and `ENUM' classes in favor of
+;; generating them like we do with all the other classes. I'm not sure yet, but
+;; we may still need the `*ITEM' classes.
 (defclass data ()
   ((%name
     :initform (error "%NAME is required for a data model!")
