@@ -11,9 +11,9 @@
 (defun load-aac-spec ()
   "Load the Architecture-as-Code specification."
   (with-spec-from-file (*spec-filename* :multi-document-p t)
-    (loop for table in *aac-spec*
-          append (let ((keys (hash-table-keys table))
-                       (vals (hash-table-values table)))
+    (loop for model in *aac-spec*
+          append (let ((keys (hash-table-keys model))
+                       (vals (hash-table-values model)))
                    (setf keys (mapcar #'standard-keyword keys))
                    (flatten (mapcar (compose #'generate-class #'build) keys vals))))))
 
