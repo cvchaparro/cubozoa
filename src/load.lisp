@@ -15,12 +15,12 @@
           append (let ((keys (hash-table-keys table))
                        (vals (hash-table-values table)))
                    (setf keys (mapcar #'standard-keyword keys))
-                   (mapcar #'build keys vals)))))
+                   (flatten (mapcar (compose #'generate-class #'build) keys vals))))))
 
 (defun build (type value)
   "Build an object of the specified TYPE from the provided VALUE."
-  (let ((class (intern (string type)))
-        (item-class (intern (format nil "~a-ITEM" type)))
+  (let ((class (intern (string type) 'cubozoa))
+        (item-class (intern (format nil "~a-ITEM" type) 'cubozoa))
         (data-p (eq type :data)))
     (labels ((build-item (x)
                (apply #'make-instance item-class :name (%name x)
@@ -35,3 +35,55 @@
 (defmethod %items    ((table hash-table)) (gethash "items" table))
 (defmethod %required ((table hash-table)) (gethash "required" table))
 (defmethod %type     ((table hash-table)) (gethash "type" table))
+
+;; FIXME: Since AaC defines a `Step' model, we end up with a `STEP' class
+;; defined but CL has a built-in object called `STEP' already so we run into a
+;; package lock scenario. Perhaps the solution will be to use a different naming
+;; scheme for class definitions, like `<STEP>' instead of just `STEP'.
+(defun generate-class (value)
+  "Generate a class definition from the parsed value."
+  (mapcar (compose #'eval #'generate)
+          ;; KLUDGE: Come to a conclusion on whether `VALUE' should always be a
+          ;; hash-table, or if we want to allow various types of objects.
+          (if (hash-table-p value) (hash-table-values value) (list value))))
+
+(defun generate (value)
+  "Generate a new class that represents a type of model."
+  (labels ((required-p (item)
+             (and (subtypep (class-of value) 'data)
+                  (not (null (member (%name item) (%required value) :test #'string=))))))
+    (let ((name (standard-symbol (%name value)))
+          (items (%items value))
+          (documentation-fmt "The ~(~a~) of the ~(~a~)."))
+      `(defclass ,name ()
+         ,(loop for item in items
+                collect
+                (generate-slot-def name item
+                                   :required-p (required-p item)
+                                   :documentation-fmt documentation-fmt))
+         (:documentation
+          ,(format nil "The representation of a ~a model." name))))))
+
+(defun generate-slot-def (model item &key (required-p t) documentation-fmt)
+  "Generate a slot definition for `MODEL' from `NAME'.
+
+The `REQUIRED' keyword argument is used to set the `:INITFORM'. If `REQUIRED' is
+`T' and the user creates a class with this slot and it is unbound an error
+condition will be raised. If `REQUIRED' is any value other than `T', then it is
+used as the value of `:INITFORM'.
+
+The `DOCUMENTATION-FMT' keyword argument is a format string that is used as
+documentation for the slot. The format string provided by `DOCUMENTATION-FMT'
+should accept the slot's name and the model's name (in that order) when writing
+the documentation the string."
+  (let* ((name  (%name item))
+         (%name (standard-symbol (format nil "%~a" name))))
+   `(,%name
+     :accessor ,%name
+     :initarg  ,(standard-keyword name)
+     :initform
+     ,(if (eq required-p t)
+          `(error ,(format nil "~a is required for ~a models!" %name model))
+          required-p)
+     ,@(when documentation-fmt
+         `(:documentation ,(format nil documentation-fmt name model))))))
