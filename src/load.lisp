@@ -1,6 +1,7 @@
 (in-package #:cubozoa)
 
-(defvar *spec-filename* (asdf:system-relative-pathname :cubozoa "models/yaml/aac/aac.yaml")
+(defvar *spec-filename* (asdf:system-relative-pathname
+                         :cubozoa "models/yaml/aac/aac.yaml")
   "The file containing the Architecture-as-Code language specification.")
 
 (defun build (type value)
@@ -32,9 +33,9 @@
   "Return X as a standard keyword."
   (funcall (compose #'make-keyword #'string-upcase) x))
 
-(defmethod %name ((str string)) (print str) str)
+(defmethod %name ((str string)) str)
 
-(defmethod %name     ((table hash-table)) (print table) (gethash "name" table))
-(defmethod %items    ((table hash-table)) (print table) (gethash "items" table))
-(defmethod %required ((table hash-table)) (print table) (gethash "required" table))
-(defmethod %type     ((table hash-table)) (print table) (gethash "type" table))
+(defmethod %name     ((table hash-table)) (gethash "name" table))
+(defmethod %items    ((table hash-table)) (gethash "items" table))
+(defmethod %required ((table hash-table)) (gethash "required" table))
+(defmethod %type     ((table hash-table)) (gethash "type" table))
