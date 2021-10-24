@@ -8,9 +8,6 @@
   `(let ((*aac-spec* (parse ,filespec t ,@args)))
      ,@body))
 
-(defgeneric parse (filespec type &rest args)
-  (:documentation "Parse the Architecture-as-Code specification from `FILESPEC'."))
-
 (defmethod parse :around (filespec type &rest args)
   (let ((type (make-keyword (string-upcase (pathname-type filespec)))))
     (apply #'call-next-method filespec type args)))

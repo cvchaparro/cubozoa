@@ -7,6 +7,7 @@
   :components ((:module "src"
                 :components
                 ((:file "package")
+                 (:file "api")
                  (:file "util")
                  (:file "types")
                  (:file "parse")
