@@ -9,7 +9,7 @@
      ,@body))
 
 (defmethod parse :around (filespec type &rest args)
-  (let ((type (make-keyword (string-upcase (pathname-type filespec)))))
+  (let ((type (standard-keyword (pathname-type filespec))))
     (apply #'call-next-method filespec type args)))
 
 (defmethod parse (filespec type &rest args)
