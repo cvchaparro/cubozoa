@@ -1,7 +1,6 @@
 (in-package #:cubozoa)
 
-(defvar *spec-filename* (asdf:system-relative-pathname
-                         :cubozoa "models/yaml/aac/aac.yaml")
+(defvar *spec-filename* (project-pathspec "models/yaml/aac/aac.yaml")
   "The file containing the Architecture-as-Code language specification.")
 
 ;; TODO: Make this more generic
