@@ -1,20 +1,29 @@
 (in-package #:cubozoa)
 
-(defvar *spec-filename* (project-pathspec "models/yaml/aac/aac.yaml")
-  "The file containing the Architecture-as-Code language specification.")
+(defmacro with-spec-filespec (filespec &body body)
+  `(let ((*spec-filespec* ,filespec))
+     ,@body))
+
+(defmacro with-spec-from-file ((filespec &rest args) &body body)
+  "Execute `BODY' with the specification from `FILESPEC' bound to `*AAC-SPEC*'."
+  `(let ((*aac-spec* (parse ,filespec t ,@args)))
+     ,@body))
 
 ;; TODO: Make this more generic
 ;; For example, the assumption that everything will be loaded into a hash-table
 ;; is not a good assumption since other parsers might return it using a
 ;; different data structure.
-(defun load-aac-spec ()
+(defun load-aac-spec (&rest args)
   "Load the Architecture-as-Code specification."
-  (with-spec-from-file (*spec-filename* :multi-document-p t)
-    (loop for model in *aac-spec*
-          append (let ((keys (hash-table-keys model))
-                       (vals (hash-table-values model)))
-                   (setf keys (mapcar #'standard-keyword keys))
-                   (flatten (mapcar (compose #'generate-class #'build) keys vals))))))
+  ;; KLUDGE: Find a better way to pass the args list to `with-spec-from-file'
+  ;; without having to specifically `eval'
+  (eval
+   `(with-spec-from-file (,*spec-filespec* ,@args)
+      (loop for model in *aac-spec*
+            append (let ((keys (hash-table-keys model))
+                         (vals (hash-table-values model)))
+                     (setf keys (mapcar #'standard-keyword keys))
+                     (flatten (mapcar (compose #'generate-class #'build) keys vals)))))))
 
 (defun build (type value)
   "Build an object of the specified TYPE from the provided VALUE."

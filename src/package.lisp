@@ -1,5 +1,17 @@
 (defpackage #:cubozoa
   (:use #:cl #:alexandria)
-  (:export #:*aac-spec*
-           #:with-spec-from-file
-           #:parse))
+  (:export
+   ;; api.lisp
+   #:*aac-spec*
+   #:*spec-filespec*
+   #:parse
+
+   ;; load.lisp
+   #:with-spec-from-file
+   #:with-spec-filespec
+   #:load-aac-spec
+
+   ;; util.lisp
+   #:standard-keyword
+   #:standard-symbol
+   #:project-pathspec))
