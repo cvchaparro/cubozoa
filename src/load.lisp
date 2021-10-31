@@ -37,13 +37,6 @@
              :name (%name value) :items (mapcar #'build-item (%items value))
              (if data-p (list :required (%required value)))))))
 
-(defmethod %name ((str string)) str)
-
-(defmethod %name     ((table hash-table)) (gethash "name" table))
-(defmethod %items    ((table hash-table)) (gethash "items" table))
-(defmethod %required ((table hash-table)) (gethash "required" table))
-(defmethod %type     ((table hash-table)) (gethash "type" table))
-
 (defun generate-class (value)
   "Generate a class definition from the parsed value."
   (mapcar (compose #'eval #'generate)
