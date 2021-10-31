@@ -9,16 +9,8 @@
   `(let ((*aac-spec* (parse ,filespec t ,@args)))
      ,@body))
 
-;; TODO: Make this more generic
-;; For example, the assumption that everything will be loaded into a hash-table
-;; is not a good assumption since other parsers might return it using a
-;; different data structure.
-;; TODO: Convert this to a generic function and specialize it for each type of
-;; plugin
 (defun load-aac-spec (&rest args)
   "Load the Architecture-as-Code specification."
-  ;; KLUDGE: Find a better way to pass the args list to `with-spec-from-file'
-  ;; without having to specifically `eval'
   (eval
    `(with-spec-from-file (,*spec-filespec* ,@args)
       (loop for model in *aac-spec*
@@ -42,8 +34,6 @@
 (defun generate-class (value)
   "Generate a class definition from the parsed value."
   (mapcar (compose #'eval #'generate)
-          ;; KLUDGE: Come to a conclusion on whether `VALUE' should always be a
-          ;; hash-table, or if we want to allow various types of objects.
           (if (hash-table-p value) (hash-table-values value) (list value))))
 
 (defun generate (value)

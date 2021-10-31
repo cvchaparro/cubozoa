@@ -1,0 +1,24 @@
+* Items
+** KLUDGE
+     - [[orgit-rev:.::527fa4a][src/load.lisp:46]]
+       Come to a conclusion on whether `VALUE' should always be a hash-table, or
+       if we want to allow various types of objects.
+     - [[orgit-rev:.::a932c61][src/load.lisp:18]]
+       Find a better way to pass the args list to `with-spec-from-file' without
+       having to specifically `eval'.
+** TODO
+     - [[orgit-rev:.::a932c61][src/impl/yaml.lisp:28]]
+       Need to do more with the generated classes.
+     - [[orgit-rev:.::56f9d98][src/load.lisp:6]]:
+       Make this more generic
+
+       For example, the assumption that everything will be loaded into a
+       hash-table is not a good assumption since other parsers might return it
+       using a different data structure.
+     - [[orgit-rev:.::b686e25][src/load.lisp:16]]
+       Convert this to a generic function and specialize it for each type of
+       plugin.
+     - [[orgit-rev:.::059d63a][src/types.lisp:3]]
+       See if we can get rid of the `DATA' and `ENUM' classes in favor of
+       generating them like we do with all the other classes. I'm not sure yet,
+       but we may still need the `*ITEM' classes.

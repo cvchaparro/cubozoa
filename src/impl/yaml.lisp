@@ -25,6 +25,5 @@
                     (remhash "import" models)
                     (if imports (mapcar #'parse* imports) models))))))
 
-;; TODO: Need to do more here with the generated classes.
 (with-spec-filespec (project-pathspec "models/yaml/aac/aac.yaml")
   (load-aac-spec :multi-document-p t))
