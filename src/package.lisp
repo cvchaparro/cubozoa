@@ -1,5 +1,5 @@
 (defpackage #:cubozoa
-  (:use #:cl #:alexandria)
+  (:use #:cl #:alexandria #:iterate)
   (:export
    ;; api.lisp
    #:*aac-spec*
