@@ -13,6 +13,8 @@
 ;; For example, the assumption that everything will be loaded into a hash-table
 ;; is not a good assumption since other parsers might return it using a
 ;; different data structure.
+;; TODO: Convert this to a generic function and specialize it for each type of
+;; plugin
 (defun load-aac-spec (&rest args)
   "Load the Architecture-as-Code specification."
   ;; KLUDGE: Find a better way to pass the args list to `with-spec-from-file'
