@@ -1,0 +1,153 @@
+* Establish an API for how to deal with going from parsing to loading
+** DONE [2/2] Problems to solve
+   CLOSED: [2021-11-05 Fri 23:40]
+   - [X] Deal with parser-to-loader interface
+   - [X] Pick an internal representation of parsed data
+** Possible Solutions
+*** Deal with parser-to-loader interface
+**** Make ~load-aac-spec~ a generic function
+     **Summary**
+
+     This is possibly the simplest and most straight-forward solution, but it
+     has some drawbacks (see below). With this in mind, it is worth at least
+     considering the solution.
+
+     Allow ~parse~ to return data in any format it wants and have different
+     implementations customize the way loading, generating classes, etc. is done
+     using a specialized method for a generic function.
+
+     **Details**
+
+     Some possible benefits to this approach would be:
+
+     - Parsing has no restriction on how data is returned for loading.
+
+       While this is true, there will have to be a restriction eventually so
+       that the main project is useful. See the drawbacks section below.
+     - This could be a great way to experiment with different approaches to
+       handling parsed data to make it useful to the rest of the application.
+
+       For this reason alone, we may make this a generic function so that it
+       *can* be molded according to the user's/implementation's desires but that
+       will probably not be a supported use case (at least initially) unless
+       something changes to make this a more attractive option for maintaining
+       the application, as a whole.
+
+     Some possible drawbacks to this approach would be:
+
+     - Different implementations of ~load-aac-spec~ have to conform to a
+       consistent internal representation (eventually).
+
+       The point here, is that if each implementation is responsible for loading
+       the spec and generating classes, etc. from it there's not really any
+       reason for the over-arching application. In fact, each implementation
+       would just be a separate version of the application, instead of an
+       extension to it (handling different methods for parsing, etc.). If that
+       were the goal, why bother here?
+
+       Additionally, this can be quite error prone since we have several
+       implementations offering the same functionality.
+**** Add a ~convert~ generic function
+     **Summary**
+
+     Allow ~parse~ to return data in any format it wants and add a separate
+     ~convert~ generic function that takes the data from parse and converts it
+     to a consistent format to be loaded, etc.
+
+     **Details**
+
+     Since we're converting from any kind of parsed representation to a
+     consistent internal representation, the parsed representation can be in
+     whatever format the parser wants and the immediate next step is to convert
+     so no other part of the application has to worry about checking/providing
+     different implementations for different representations.
+
+     Some possible benefits to this approach would be:
+
+     - Parsing can remain simple - i.e. just read the data in and return it in
+       whatever format is easiest.
+     - Parsing is not coupled to converting to an internal representation that we
+       can use when loading.
+     - There's a possibility for different implementations of ~convert~ without
+       having to change ~parse~.
+     - Converting to an internal representation is done close to the boundaries
+       of the application.
+
+     Some possible drawbacks to this approach would be:
+
+     - There's an extra requirement for converting the data after it's parsed and
+       before it's loaded.
+
+       The counter-argument here would be that (as described above) this is going
+       to have to happen somewhere, or every other part of the system is going to
+       have to handle different cases.
+     - The loading function will always have to call convert on what is returned
+       from the ~parse~ function. This means there's an extra step for the
+       loading function.
+
+       The counter-argument to the above would be that if we *didn't* do this in
+       the loading function, (in the worst case) every other part of the system
+       would have to handle special cases for each different returned
+       implementation.
+**** Make ~load-aac-spec~ a generic function and make an ~around~ method to do the conversion
+     **Summary**
+
+     This is similar to the first option but differs in an important way: the
+     conversion can still be done before loading but it's not a separate
+     function/method in the sense whatever part of the system calls the parser,
+     would not also have to call the converter before passing that information to
+     the loader.
+
+     This is also similar to the second option in that conversion is done in
+     separate functions for each parser but the conversion function doesn't have
+     to be explicitly called because CLOS already calls ~:around~ methods without
+     extra intervention.
+
+     **Details**
+
+     Some possible benefits to this approach would be:
+
+     - No extra work for loading because the conversion happens before loading.
+     - Converting to a standard internal representation would logically be a
+       "setup" step to do before loading (see descriptions above).
+
+     Some possible drawbacks to this approach would be:
+
+     - ~:before~ methods don't seem to be the right place to perform large
+       amounts of work. However, delegating to a ~convert~ method might be a good
+       thing to do.
+**** Combination of #2 and #3                                      :selected:
+     Take the best of both worlds. The TL;DR of this would be: Add a new
+     ~convert~ generic function, make the ~load-aac-spec~ function a generic
+     function, and call ~convert~ from an ~around~ method on ~load-aac-spec~ so
+     that it is automatically run.
+*** Pick an internal representation of parsed data
+**** Hash Tables
+     When considering interoperability with the official AaC project, ~cl-yaml~
+     returns hash tables after parsing YAML files so that would be easy. Any
+     conversion would just be an ~#'identity~ function call.
+
+     That said, this would likely be cumbersome for *every other parser* of
+     which there is at least one and, for *this* project, it is the standard
+     parser - i.e. the Lisp DSL parser. If it should be straightforward for any
+     of the parsers, it should probably be the standard one.
+**** Lisp DSL Classes
+     Essentially, this would mean there's a step between getting the values from
+     any of the parsers (other than the standard one) where it converts the
+     parsed representation to the standard DSL.
+
+     This would mean that parsers are essentially plug-and-play with the rest of
+     the application because the conversion step (which may, or may not, be the
+     referenced ~convert~ generic function above) would massage the data into a
+     format that the rest of the application can already work with without a
+     need for changing anything else.
+**** Basic Lisp Data Structures                                    :selected:
+     This differs from option #2 in the sense that the conversion doesn't deal
+     with creating DSL objects, or anything, but rather it converts it to a
+     simple data structure representation (for example) plists, or alists, or
+     something similar. This would mean that the converters and the loader are
+     decoupled such that, as long as the internal representation remains
+     consistent, either part can be changed without needing to change the other.
+** Chosen Solution
+   - Deal with parser-to-loader interface: **Combination of #2 and #3**
+   - Pick an internal representation of parsed data: **Basic Lisp Data Structures**
