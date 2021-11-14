@@ -3,7 +3,7 @@
 
 (in-package #:cubozoa-yaml)
 
-(defmethod parse (filespec (type (eql :yaml)) &rest args)
+(defmethod parse ((type (eql :yaml)) filespec &rest args)
   (let* ((model (apply #'cl-yaml:parse filespec args))
          (models (if (listp model) (rest model) (list model))))
     (flatten (union models (maybe-import-models filespec models)))))
@@ -18,7 +18,7 @@
                                           (remove-if (lambda (part) (string= part "."))
                                                      (pathname-directory file))
                                           (pathname-directory filespec)))))
-               (parse pathspec t :multi-document-p t))))
+               (parse t pathspec :multi-document-p t))))
     (ctypecase models
       (list       (mapcar (lambda (m) (maybe-import-models filespec m)) models))
       (hash-table (let ((imports (gethash "import" models)))

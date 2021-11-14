@@ -6,7 +6,7 @@
 
 (defmacro with-spec-from-file ((filespec &rest args) &body body)
   "Execute `BODY' with the specification from `FILESPEC' bound to `*AAC-SPEC*'."
-  `(let ((*aac-spec* (parse ,filespec t ,@args)))
+  `(let ((*aac-spec* (parse t ,filespec ,@args)))
      ,@body))
 
 (defun load-aac-spec (&rest args)

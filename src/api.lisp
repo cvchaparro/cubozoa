@@ -6,5 +6,5 @@
 (defvar *spec-filespec* nil
   "The file containing the Architecture-as-Code language specification.")
 
-(defgeneric parse (filespec type &rest args)
-  (:documentation "Parse the Architecture-as-Code specification from `FILESPEC'."))
+(defgeneric parse (type filespec &rest args)
+  (:documentation "Parse the Architecture-as-Code specification."))

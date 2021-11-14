@@ -11,7 +11,7 @@
 
 (in-package #:cubozoa-standard)
 
-(defmethod parse (filespec (type (eql :lisp)) &rest args)
+(defmethod parse ((type (eql :lisp)) filespec &rest args)
   (apply #'load filespec args))
 
 (defmacro defenum (name &rest keys)
